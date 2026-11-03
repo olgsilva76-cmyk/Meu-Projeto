@@ -92,9 +92,7 @@ SEM_LEGENDA = {"..."}
 # EFEITOS (tempo no bruto). Tipos:
 #   punch  (t, zoom, dur)          zoom rápido que segura por dur s (None = até o fim do clipe)
 #   shake  (t, dur, força)
-#   emoji  (t, "🙏", dur, lado)     lado: "d" direita / "e" esquerda da cabeça
 #   big    (t, "TEXTO", "sub", dur) grafismo grande no topo
-#   touca  (t,)                     +1 no contador "ajustes na touca"
 #   sfx    (t, nome, ganho_dB)
 # ------------------------------------------------------------------
 EFEITOS = [
@@ -104,47 +102,37 @@ EFEITOS = [
     # "Meu Deus, o que é isso, cara?" — reação ao se ver de touca
     ("punch", 10.24, 1.38, None), ("sfx", 10.22, "punch", -4),
     ("sfx", 11.92, "boing", -9),
-    ("touca", 10.3),
-    ("emoji", 14.41, "🧠", 1.3, "d"), ("punch", 14.41, 1.22, None), ("sfx", 14.40, "pop", -6),
+    ("punch", 14.41, 1.22, None), ("sfx", 14.40, "pop", -6),
     ("sfx", 16.0, "grilo", -14),
 
-    ("touca", 20.3),
     ("big", 24.15, "10 ANOS", "de internet", 1.8), ("sfx", 24.13, "pop", -6),
-    ("emoji", 27.3, "✨", 1.2, "e"),
     ("big", 30.65, "+600 MIL", "pessoas alcançadas", 1.7),
-    ("emoji", 36.1, "🙏", 1.4, "d"),
 
     # a touca de novo
-    ("touca", 43.6),
     ("punch", 45.05, 1.30, None), ("sfx", 45.0, "punch", -5),
-    ("touca", 49.0), ("touca", 51.4), ("touca", 53.8), ("touca", 56.2),
-    ("sfx", 58.75, "tchan", -10), ("emoji", 58.9, "✅", 1.2, "d"),
+    ("sfx", 58.75, "tchan", -10),
 
     ("sfx", 66.9, "riser", -12),
     ("shake", 68.59, 0.35, 10), ("sfx", 68.55, "punch", -6),
 
-    ("emoji", 86.3, "🇨🇦", 1.6, "d"), ("sfx", 86.3, "pop", -8),
-    ("emoji", 91.2, "✨", 1.3, "e"),
-    ("emoji", 100.6, "📱", 1.0, "d"), ("sfx", 100.6, "pop", -8),
-    ("sfx", 134.0, "ding", -12), ("emoji", 135.1, "🙏", 1.2, "d"),
-    ("emoji", 141.1, "🎥", 1.3, "e"),
+    ("sfx", 86.3, "pop", -8),
+    ("sfx", 100.6, "pop", -8),
+    ("sfx", 134.0, "ding", -12),
     ("sfx", 145.75, "pop", -10),
 
     ("big", 159.7, "+200 MIL", "views", 1.6), ("sfx", 159.68, "pop", -6),
-    ("emoji", 162.9, "🍿", 1.6, "d"), ("sfx", 162.88, "boing", -14),
-    ("emoji", 173.0, "🫣", 1.5, "d"), ("shake", 173.03, 0.5, 7),
+    ("sfx", 162.88, "boing", -14),
+    ("shake", 173.03, 0.5, 7),
 
-    ("touca", 177.1),
     ("punch", 179.7, 1.34, None), ("sfx", 179.66, "punch", -4), ("sfx", 180.8, "boing", -10),
-    ("emoji", 183.3, "🙏", 1.2, "d"),
 
     # final: cada "postar" é um zoom a mais
     ("punch", 196.77, 1.08, None), ("sfx", 196.77, "pop", -10),
     ("punch", 197.42, 1.16, None), ("sfx", 197.42, "pop", -9),
     ("punch", 197.92, 1.24, None), ("sfx", 197.92, "pop", -8),
     ("punch", 198.86, 1.32, None), ("sfx", 198.86, "pop", -7),
-    ("sfx", 199.5, "scratch", -9), ("emoji", 199.7, "😅", 1.6, "d"),
+    ("sfx", 199.5, "scratch", -9),
 ]
 
 # texto do cartão final (sobre o quadro congelado)
-CARTAO_FINAL = ("Segue pra acompanhar", "🙏")
+CARTAO_FINAL = "Segue pra acompanhar"

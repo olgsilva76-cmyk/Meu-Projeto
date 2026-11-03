@@ -24,8 +24,9 @@ import plano  # noqa: E402
 FPS = 30
 W, H = 720, 1280
 SR = 44100
-FONT_BLACK = "/usr/share/fonts/opentype/inter/InterDisplay-Black.otf"
-FONT_BOLD = "/usr/share/fonts/opentype/inter/InterDisplay-ExtraBold.otf"
+_FONTES = os.path.join(os.path.dirname(__file__), "..", "fontes")
+FONT_BLACK = os.path.join(_FONTES, "Ronzino-Bold.otf")
+FONT_BOLD = os.path.join(_FONTES, "Ronzino-Medium.otf")
 FONT_EMOJI = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
 CORES = {"y": (255, 222, 60), "g": (90, 255, 150), "r": (255, 92, 120), "w": (255, 255, 255)}
 
@@ -104,14 +105,21 @@ for c in clips:
         txt = w["w"].replace("...", "…")
         os_ = c["o0"] + max(0, w["s"] - c["s"])
         oe_ = c["o0"] + min(c["e"], w["e"]) - c["s"]
-        cor, imp = plano.DESTAQUES.get(w["w"], ("w", False))
+        cor, _ = plano.DESTAQUES.get(w["w"], ("w", False))
+        # legenda por frase: troca quando a frase acaba ou quando fica longa demais
         if group:
             dur = oe_ - group[0][1]
-            chars = sum(len(g[0]) for g in group) + len(txt)
-            if dur > 1.1 or chars > 17 or len(group) >= 3 or imp or group[-1][4]:
+            chars = sum(len(g[0]) + 1 for g in group) + len(txt)
+            if dur > 2.6 or chars > 34:
+                # não termina a legenda em artigo/preposição solta ("o", "de", "a"...)
+                carry = []
+                while len(group) > 1 and len(group[-1][0]) <= 3 and group[-1][0][-1].isalpha():
+                    carry.insert(0, group.pop())
                 flush()
-        group.append((txt, os_, oe_, cor, imp))
-        if txt[-1] in ".?!,…" and len(txt) > 1:
+                group.extend(carry)
+        group.append((txt, os_, oe_, cor, False))
+        chars = sum(len(g[0]) + 1 for g in group)
+        if txt[-1] in ".?!…" or (txt[-1] == "," and chars >= 14):
             flush()
     flush()
 caps.sort(key=lambda g: g["words"][0][1])
@@ -119,7 +127,7 @@ for i, g in enumerate(caps):
     g["o0"] = g["words"][0][1]
     nxt = caps[i + 1]["words"][0][1] if i + 1 < len(caps) else 1e9
     g["o1"] = min(nxt, g["words"][-1][2] + 0.35)
-    g["impact"] = any(w[4] for w in g["words"])
+    g["impact"] = False
 
 
 # =================================================================
@@ -170,25 +178,27 @@ def caption_sprite(gi, active):
     if key in _cap_cache:
         return _cap_cache[key]
     g = caps[gi]
-    size = 62
+    size = 56
     parts = []
     for k, (txt, _, _, cor, imp) in enumerate(g["words"]):
-        sz = int(size * (1.22 if imp else 1.0))
-        f = font(FONT_BLACK, sz)
-        if cor != "w":
-            col = CORES[cor]
-        else:
-            col = CORES["y"] if k == active and len(g["words"]) > 1 else CORES["w"]
-        parts.append((txt, f, col, sz))
-    space = 16
+        f = font(FONT_BLACK, size)
+        parts.append((txt, f, CORES[cor], size))  # cor fixa: branco, ou cor da palavra em destaque
+    space = 14
     # quebra em até 2 linhas
     widths = [p[1].getbbox(p[0], stroke_width=7)[2] for p in parts]
-    lines, cur, cw = [], [], 0
-    for p, wdt in zip(parts, widths):
-        if cur and cw + space + wdt > 620:
-            lines.append(cur); cur, cw = [], 0
-        cur.append((p, wdt)); cw += wdt + (space if cw else 0)
-    lines.append(cur)
+    items = list(zip(parts, widths))
+    total = sum(widths) + space * (len(items) - 1)
+    if total <= 600 or len(items) < 2:
+        lines = [items]
+    else:
+        # duas linhas equilibradas (sem palavra sobrando sozinha)
+        best, best_k = 1e9, 1
+        for k in range(1, len(items)):
+            w1 = sum(w for _, w in items[:k]) + space * (k - 1)
+            w2 = sum(w for _, w in items[k:]) + space * (len(items) - k - 1)
+            if max(w1, w2) < best:
+                best, best_k = max(w1, w2), k
+        lines = [items[:best_k], items[best_k:]]
     lh = [max(p[3] for p, _ in ln) for ln in lines]
     tw = max(sum(wd for _, wd in ln) + space * (len(ln) - 1) for ln in lines)
     th = int(sum(h * 1.12 for h in lh))
@@ -276,14 +286,12 @@ def label_sprite(text, bg=(255, 92, 120), emoji=None):
 
 def end_card_sprite():
     def mk():
-        t, e = plano.CARTAO_FINAL
+        t = plano.CARTAO_FINAL
         f = font(FONT_BLACK, 56)
         b = f.getbbox(t, stroke_width=6)
-        em = emoji_img(e, 70)
-        img = Image.new("RGBA", (b[2] + em.width + 70, max(b[3], em.height) + 40), (0, 0, 0, 0))
+        img = Image.new("RGBA", (b[2] + 40, b[3] + 40), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
         d.text((20, 20), t, font=f, fill=(255, 255, 255), stroke_width=6, stroke_fill=(10, 10, 10))
-        img.alpha_composite(em, (b[2] + 40, 14))
         return to_np(shadowed(img, 10, (0, 6), 170))
     return cached(("end",), mk)
 
@@ -438,49 +446,13 @@ def overlays(frame, t, c, face_out):
             k_out = clamp((t - (o + dur - 0.2)) / 0.2)
             sc = (0.4 + 0.6 * ease_back(k_in)) * (1 - 0.3 * k_out)
             blit(frame, big_sprite(ef[2], ef[3]), W / 2, 250, sc, (1 - k_out) * clamp(k_in * 3))
-    # ---- emojis perto da cabeça ----
-    for o, _, ef in fx_by_type.get("emoji", []):
-        dur = ef[3]
-        if o <= t < o + dur:
-            fx_, fy_, fw_ = face_out
-            side = 1 if ef[4] == "d" else -1
-            ex = clamp(fx_ + side * (fw_ * 0.9 + 70), 90, W - 90)
-            ey = clamp(fy_ - fw_ * 0.5, 160, H - 400)
-            k_in = clamp((t - o) / 0.25)
-            k_out = clamp((t - (o + dur - 0.18)) / 0.18)
-            bob = math.sin((t - o) * 7) * 6
-            blit(frame, emoji_sprite(ef[2]), ex, ey + bob, ease_back(k_in) * (1 - 0.5 * k_out),
-                 1 - k_out, angle=side * -10 * (1 - k_in) + math.sin((t - o) * 5) * 4)
-    # ---- contador da touca ----
-    prev = [x for x in touca_times if x <= t]
-    big_on = any(o - 0.1 <= t < o + ef[4] + 0.1 for o, _, ef in fx_by_type.get("big", []))
-    if prev and c.get("tag") != "end" and not big_on:
-        n = len(prev)
-        k = clamp((t - prev[-1]) / 0.3)
-        sc = 1 + 0.35 * (1 - ease_out(k)) * (1 if k < 1 else 0)
-        first = clamp((t - touca_times[0]) / 0.3)
-        blit(frame, counter_sprite(n), 40 + counter_sprite(n).shape[1] / 2, 150, sc * ease_back(first) if first < 1 else sc)
-    # ---- rótulos especiais ----
+    # ---- rótulo do trecho acelerado ----
     if c.get("tag") == "fast":
-        blit(frame, label_sprite("ACELERANDO 4x", (40, 40, 44), "⏩"), W / 2, 980, 1 + 0.04 * math.sin(t * 12))
-    if c.get("tag") == "rewind":
-        blit(frame, emoji_sprite("⏪", 170), W / 2, H / 2, 1 + 0.06 * math.sin(t * 20))
-    # ---- legendas ----
+        blit(frame, label_sprite("ACELERANDO 4x", (40, 40, 44)), W / 2, 980)
+    # ---- legendas: frase inteira, fixa, troca de uma frase para a outra ----
     for gi, g in enumerate(caps):
         if g["o0"] <= t < g["o1"]:
-            active = 0
-            for k, w in enumerate(g["words"]):
-                if t >= w[1]:
-                    active = k
-            spr = caption_sprite(gi, active)
-            k_in = clamp((t - g["o0"]) / (0.2 if g["impact"] else 0.14))
-            if g["impact"]:
-                sc = 1.45 - 0.45 * ease_out(k_in)
-                ang = 0
-            else:
-                sc = 0.75 + 0.25 * ease_back(k_in)
-                ang = 0
-            blit(frame, spr, W / 2, 905, sc, clamp(k_in * 2.5), ang)
+            blit(frame, caption_sprite(gi, 0), W / 2, 905)
             break
 
 

@@ -6,8 +6,15 @@ O bruto `insta_post_1793733245487.mp4` tem 3min21. Ele virou `edicao_final.mp4`,
 
 O conteúdo é um desabafo sério (carreira na internet → conversão → nova fase do perfil). Mas existe um personagem acidental no vídeo: **a touca de cetim**, que ele ajusta o tempo todo e comenta ("Meu Deus, o que é isso, cara?", "tô parecendo o Megamente", "minha cabeça não aguenta o tamanho dessa touca"). A edição usa isso como **piada recorrente** e preserva a mensagem séria.
 
-- O **contador "AJUSTES NA TOUCA"** fica no topo e sobe a cada vez que ele mexe na touca (chega a 8).
-- O trecho em que ele luta com a touca (11 s) virou **"⏩ ACELERANDO 4x"**, com a voz em tom agudo e baixa, e termina em **"Pronto, deixa assim." ✅** com um "tchan".
+- O trecho em que ele luta com a touca (11 s) virou **"ACELERANDO 4x"**, com a voz em tom agudo e baixa, e termina em **"Pronto, deixa assim."** com um "tchan".
+
+## Legendas
+
+- **Fonte:** Ronzino Bold, da Collletttivo, com licença SIL OFL (ver `fontes/OFL-Ronzino.txt`).
+- **Sem animação:** cada legenda é uma frase da fala, fixa na tela, e troca direto para a próxima quando ele passa para a frase seguinte.
+- **Formato:** até 2 linhas equilibradas, branca com contorno preto, na altura do peito (área segura do Reels).
+- **Destaque:** só as palavras-chave mudam de cor (amarelo, verde ou rosa), sem mudar de tamanho.
+- **Sem emojis e sem contador** na tela.
 - Nas falas sobre Deus, propósito e decisão, os efeitos ficam discretos: só destaque na legenda, zoom lento e um "ding".
 
 ## Estrutura
@@ -15,15 +22,15 @@ O conteúdo é um desabafo sério (carreira na internet → conversão → nova 
 | Saída | O que acontece |
 |-------|----------------|
 | 0:00–0:03 | **Gancho:** "Eu já alcancei mais de 600 mil pessoas" + grafismo **+600 MIL** |
-| 0:03 | Efeito de **rebobinar** (⏪ + scratch) e volta para o começo |
-| 0:03–0:15 | "Uma curiosidade sobre mim…" → reação à touca com **zoom rápido**, "boing", 🧠 em "Megamente", pausa cômica com grilos |
-| 0:15–0:34 | 10 anos de internet (**10 ANOS**), conversão, +600 mil, vida com Deus 🙏 |
-| 0:35–0:46 | "Tô colocando errado essa touca de cetim" → zoom → **acelerado 4x** → "Pronto, deixa assim" ✅ |
-| 0:46–1:12 | "Só que tem um porém" (riser + tremida), vida artística, Canadá 🇨🇦, os frutos ✨, "por aqui" 📱 |
-| 1:12–1:35 | Usar o que tem para glorificar a Deus, câmera 🎥, a decisão |
-| 1:35–1:52 | +200 mil views, a treta 🍿, vergonha 🫣 |
+| 0:03 | Efeito de **rebobinar** (scratch) e volta para o começo |
+| 0:03–0:15 | "Uma curiosidade sobre mim…" → reação à touca com **zoom rápido**, "boing", zoom em "Megamente", pausa cômica com grilos |
+| 0:15–0:34 | 10 anos de internet (**10 ANOS**), conversão, +600 mil, vida com Deus |
+| 0:35–0:46 | "Tô colocando errado essa touca de cetim" → zoom → **acelerado 4x** → "Pronto, deixa assim" |
+| 0:46–1:12 | "Só que tem um porém" (riser + tremida), vida artística, Canadá, os frutos, "por aqui" |
+| 1:12–1:35 | Usar o que tem para glorificar a Deus, câmera, a decisão |
+| 1:35–1:52 | +200 mil views, a treta, vergonha (tremida) |
 | 1:52–2:10 | "Minha cabeça já não aguenta mais o tamanho dessa touca" (zoom + boing), novo foco do perfil |
-| 2:10–2:17 | "postar, postar, postar…": **cada "postar" dá um zoom a mais**, scratch, 😅, cartão final congelado |
+| 2:10–2:17 | "postar, postar, postar…": **cada "postar" dá um zoom a mais**, scratch, cartão final congelado |
 
 ## O que foi cortado (e por quê)
 
@@ -74,8 +81,8 @@ python3 scripts/editar.py BRUTO.mp4 palavras.json sons edicao_final.mp4
 #    mapa bruto → final:                --mapa
 ```
 
-- **Cortes, zooms, efeitos e emojis:** `plano.py` (todos os tempos são do vídeo bruto).
-- **Cores e tamanho da legenda:** `scripts/editar.py` (`CORES`, `caption_sprite`).
+- **Cortes, zooms e efeitos:** `plano.py` (todos os tempos são do vídeo bruto).
+- **Fonte, cores e tamanho da legenda:** `scripts/editar.py` (`FONT_BLACK`, `CORES`, `caption_sprite`).
 - **Palavras em destaque:** `DESTAQUES` em `plano.py`.
 
 Dependências: `ffmpeg`, Python com `numpy`, `scipy`, `pillow`, `opencv-python-headless<5` e `sherpa-onnx`.
