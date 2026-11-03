@@ -3,18 +3,71 @@
   "modelo": "Nano Banana 2 (OpenArt)",
   "personagens": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743586514_2fb085dc_1793743587489_5f766217.png",
   "cenas": {
-    "01": {"desc": "Abertura: drone sobre o mar, cidade neon no pôr do sol", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743637381_e9678a6e_1793743638041_96cf2ca7.png"},
-    "13": {"desc": "O primeiro olhar no bar neon", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743642004_f3c85399_1793743642217_b905d433.png"},
-    "15": {"desc": "Primeiro golpe: saindo da loja com máscaras", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743647823_6407bbba_1793743648129_7c0891b1.png"},
-    "16": {"desc": "Refrão: caminhando com a explosão atrás", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743648528_a8d5d382_1793743648585_36446139.png"},
-    "22": {"desc": "Pulo do píer para a lancha", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743653533_80bae705_1793743653613_c89fd2d0.png"},
-    "24": {"desc": "Flashback: saída da prisão", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743731393_3291bc77_1793743731568_69bd4f97.png"},
-    "30": {"desc": "Motel: testa com testa", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743658555_74409354_1793743659496_5522554f.png"},
-    "33": {"desc": "Respiro: isqueiro no escuro", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743661750_990c1c72_1793743662947_d6ba470d.png"},
-    "36": {"desc": "Helicóptero com holofote", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743664803_4ae31b72_1793743665614_46a4fb3a.png"},
-    "42": {"desc": "Ponte: os dois no telhado ao amanhecer", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743668463_89922f05_1793743668748_74e85c2f.png"},
-    "51": {"desc": "Lancha saltando a onda", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743735728_e33b0573_1793743735801_d8f66286.png"},
-    "54": {"desc": "Clímax: saindo da fumaça com fogos", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743674764_fd5e7485_1793743674906_050838a8.png"},
-    "62": {"desc": "Outro: no capô do carro ao nascer do sol", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743681925_34608ce1_1793743682324_a027ab17.png"}
-  }
+    "01": {
+      "desc": "Abertura: drone sobre o mar, cidade neon no pôr do sol",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743637381_e9678a6e_1793743638041_96cf2ca7.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/6a859cc4db394fa88de05d108afc6e54-metadata_4ssOQQjJ_65bfcc1c76fe_1793744256142_dc383229.mp4"
+    },
+    "13": {
+      "desc": "O primeiro olhar no bar neon",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743642004_f3c85399_1793743642217_b905d433.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/12a1a25d6e5240e4ad2a8c8d0ab632bd-metadata_mFVfhLh6_7c14404af55b_1793744252312_31e6d911.mp4"
+    },
+    "15": {
+      "desc": "Primeiro golpe: saindo da loja com máscaras",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743647823_6407bbba_1793743648129_7c0891b1.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/b6d4ee41e50f4c109cc375b2712803d3-metadata_IPfjK4Gl_bad256c50156_1793744371216_df057314.mp4"
+    },
+    "16": {
+      "desc": "Refrão: caminhando com a explosão atrás",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743648528_a8d5d382_1793743648585_36446139.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/f016d19d24094848b4e54a7e20adfd4a-metadata_3JsQaDWH_e67918b0cae2_1793744372166_0317d7ba.mp4"
+    },
+    "22": {
+      "desc": "Pulo do píer para a lancha",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743653533_80bae705_1793743653613_c89fd2d0.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/bee3269247fe43c0a182bb8e4240549d-metadata_EsGAUSqx_1286737cb12f_1793744480278_dbb26dd3.mp4"
+    },
+    "24": {
+      "desc": "Flashback: saída da prisão",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743731393_3291bc77_1793743731568_69bd4f97.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/827afe2c5ee045429955243f85ab130f-metadata_D50dmepP_4df5fb50977e_1793744475390_eff5739c.mp4"
+    },
+    "30": {
+      "desc": "Motel: testa com testa",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743658555_74409354_1793743659496_5522554f.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/ac214a76731c4fc880661567f0d908a3-metadata_MV9UgVmT_c684a70f80f0_1793744589325_62c253ee.mp4"
+    },
+    "33": {
+      "desc": "Respiro: isqueiro no escuro",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743661750_990c1c72_1793743662947_d6ba470d.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/f531deb55b224990b6811936d8075d0a-metadata_3RJb58Dj_0d54843dab67_1793744586318_df5578a9.mp4"
+    },
+    "36": {
+      "desc": "Helicóptero com holofote",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743664803_4ae31b72_1793743665614_46a4fb3a.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/d5da630f51424e669e88c6063a1e35ee-metadata_cgk5g0rV_9b9aa561650d_1793744709427_b85295ab.mp4"
+    },
+    "42": {
+      "desc": "Ponte: os dois no telhado ao amanhecer",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743668463_89922f05_1793743668748_74e85c2f.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/380e517a738145cbb645f05046157c38-metadata_6Ide5LDh_ae3560db1820_1793744706310_90c9fd8a.mp4"
+    },
+    "51": {
+      "desc": "Lancha saltando a onda",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743735728_e33b0573_1793743735801_d8f66286.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/3d0e068d051c40f99245cc6d7182cc3f-metadata_KMrS4ZcQ_01dbd7fbcbc2_1793744836224_4cf02284.mp4"
+    },
+    "54": {
+      "desc": "Clímax: saindo da fumaça com fogos",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743674764_fd5e7485_1793743674906_050838a8.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/eb26643f7ed542ee89ddb532cfa00c38-metadata_lu7U7aSA_edd241b2c324_1793744838362_c5fc1816.mp4"
+    },
+    "62": {
+      "desc": "Outro: no capô do carro ao nascer do sol",
+      "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743681925_34608ce1_1793743682324_a027ab17.png",
+      "video": "https://cdn.openart.ai/openart-ai/production/2026-11/create-video/NgdDEYJjYorAl1lKa2i9/454a7c78898f456cbc57d8976bc13619-metadata_RZ9fVAPF_e65705b6b1c8_1793744966190_dded29bb.mp4"
+    }
+  },
+  "video_modelo": "Wan 3.0 image2video, 5 s, 480p (982x416), sem áudio"
 }

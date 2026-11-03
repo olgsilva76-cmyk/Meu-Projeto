@@ -81,6 +81,45 @@ def cover(img, w, h):
 
 base = {k: cover(v, int(W * 1.15), int(IMG_H * 1.15)) for k, v in imgs.items()}
 
+# ---------- clipes de vídeo (quando existirem, substituem a imagem parada) ----------
+VFPS = 30
+videos = {}
+for k, v in cfg["cenas"].items():
+    if "--sem-video" in sys.argv or "video" not in v:
+        continue
+    if TESTE:
+        # vídeo falso: a imagem de teste com uma faixa clara andando, para testar o caminho
+        fr = []
+        for i in range(150):
+            a = imgs[k].copy()
+            x = int(i / 150 * a.shape[1])
+            a[:, max(0, x - 20):x + 20] = 255
+            fr.append(a)
+        videos[k] = fr
+        continue
+    p = os.path.join(pasta, f"cena_{k}.mp4")
+    if not os.path.exists(p):
+        print("baixando vídeo da cena", k)
+        urllib.request.urlretrieve(v["video"], p)
+    cap, fr = cv2.VideoCapture(p), []
+    while True:
+        ok, f = cap.read()
+        if not ok:
+            break
+        fr.append(f)
+    if fr:
+        videos[k] = fr
+
+
+def quadro_fonte(cena, dt, dur_plano):
+    """Imagem da cena no instante dt do plano. Vídeos mais curtos que o plano tocam em câmera lenta."""
+    if cena not in videos:
+        return base[cena]
+    fr = videos[cena]
+    vel = min(1.0, (len(fr) / VFPS) / max(0.01, dur_plano))
+    i = min(len(fr) - 1, int(dt * vel * VFPS))
+    return cover(fr[i], int(W * 1.15), int(IMG_H * 1.15))
+
 # ---------- planos ----------
 planos = []  # (início, fim, cena, flash, idx)
 for ini, fim, cenas, comp, flash in SECOES:
@@ -143,8 +182,9 @@ def quadro(t):
     p = next((p for p in planos if p[0] <= t < p[1]), planos[-1])
     ini, fim, cena, flash, idx = p
     k = (t - ini) / max(0.01, fim - ini)
-    img = base[cena]
-    z = 1.0 + 0.12 * (k if idx % 2 == 0 else 1 - k)  # zoom lento, alternando
+    img = quadro_fonte(cena, t - ini, fim - ini)
+    zmax = 0.05 if cena in videos else 0.12  # o vídeo já tem movimento: zoom mais sutil
+    z = 1.0 + zmax * (k if idx % 2 == 0 else 1 - k)  # zoom lento, alternando
     bh, bw = img.shape[:2]
     cw, ch = int(W / z * 1.0), int(IMG_H / z)
     x0 = int((bw - cw) / 2 + (k - 0.5) * 40 * (1 if idx % 3 else -1))

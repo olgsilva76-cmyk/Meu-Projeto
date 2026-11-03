@@ -10,8 +10,8 @@ Roteiro de direção e edição, sincronizado com a música real (`Gta6JasoneLuc
 | `letra.srt` | Os 47 versos com timecode exato. Importe no editor como guia da tipografia animada |
 | `marcadores.csv` | As 12 seções + as 433 batidas e compassos, para usar como marcadores de corte |
 | `grade.py` / `beats.json` / `letra.txt` | Geram o SRT e os marcadores de novo, se a letra ou os tempos mudarem |
-| `frames.json` | Links da folha de personagem e das 13 imagens-chave geradas na OpenArt (projeto "Clipe Jason e Lúcia - VAMORLI") |
-| `animatic.py` | Monta o animatic (imagens-chave no tempo da música, zoom lento, cortes no compasso, letra e título). Rode no seu computador: `python3 animatic.py musica.m4a animatic.mp4` |
+| `frames.json` | Links da folha de personagem, das 13 imagens-chave e dos 13 clipes animados (Wan 3.0, 5 s, 480p) gerados na OpenArt (projeto "Clipe Jason e Lúcia - VAMORLI") |
+| `animatic.py` | Monta o animatic com os 13 clipes animados no tempo da música (em câmera lenta quando o plano é mais longo que 5 s), cortes no compasso, flash nos refrões, letra e título. Rode no seu computador: `python3 animatic.py musica.m4a animatic.mp4` (use `--sem-video` para só as imagens) |
 
 ---
 
