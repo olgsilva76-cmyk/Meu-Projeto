@@ -65,7 +65,7 @@ CLIPS = [
     dict(s=181.13, e=187.12, z=1.0, enter="whip"),           # Então, olha, é melhor eu falar sobre Deus...
     dict(s=188.03, e=190.77, z=1.14),                        # Fazer uns conteúdos aqui...
     dict(s=191.44, e=194.62, z=1.0),                         # Mas eu espero que, com o tempo, vá dando certo.
-    dict(s=195.61, e=200.55, z=1.0, hold=2.2, tag="end"),    # postar, postar, postar até postar... não postar mais.
+    dict(s=195.61, e=200.55, z=1.0, hold=0.6, tag="end"),    # postar, postar, postar até postar... não postar mais.
 ]
 
 # ------------------------------------------------------------------
@@ -92,21 +92,14 @@ SEM_LEGENDA = {"..."}
 # EFEITOS (tempo no bruto). Tipos:
 #   punch  (t, zoom, dur)          zoom rápido que segura por dur s (None = até o fim do clipe)
 #   shake  (t, dur, força)
-#   big    (t, "TEXTO", "sub", dur) grafismo grande no topo
 #   sfx    (t, nome, ganho_dB)
 # ------------------------------------------------------------------
 EFEITOS = [
-    # "+600 MIL" aparece no gancho e de novo na hora da fala completa
-    ("sfx", 30.65, "ding", -8),
-
     # "Meu Deus, o que é isso, cara?" — reação ao se ver de touca
     ("punch", 10.24, 1.38, None), ("sfx", 10.22, "punch", -4),
     ("sfx", 11.92, "boing", -9),
     ("punch", 14.41, 1.22, None), ("sfx", 14.40, "pop", -6),
     ("sfx", 16.0, "grilo", -14),
-
-    ("big", 24.15, "10 ANOS", "de internet", 1.8), ("sfx", 24.13, "pop", -6),
-    ("big", 30.65, "+600 MIL", "pessoas alcançadas", 1.7),
 
     # a touca de novo
     ("punch", 45.05, 1.30, None), ("sfx", 45.0, "punch", -5),
@@ -115,12 +108,7 @@ EFEITOS = [
     ("sfx", 66.9, "riser", -12),
     ("shake", 68.59, 0.35, 10), ("sfx", 68.55, "punch", -6),
 
-    ("sfx", 86.3, "pop", -8),
-    ("sfx", 100.6, "pop", -8),
     ("sfx", 134.0, "ding", -12),
-    ("sfx", 145.75, "pop", -10),
-
-    ("big", 159.7, "+200 MIL", "views", 1.6), ("sfx", 159.68, "pop", -6),
     ("sfx", 162.88, "boing", -14),
     ("shake", 173.03, 0.5, 7),
 
@@ -134,5 +122,3 @@ EFEITOS = [
     ("sfx", 199.5, "scratch", -9),
 ]
 
-# texto do cartão final (sobre o quadro congelado)
-CARTAO_FINAL = "Segue pra acompanhar"

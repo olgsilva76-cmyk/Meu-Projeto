@@ -1,36 +1,35 @@
 # Edição: "Uma curiosidade sobre mim" (a touca de cetim)
 
-O bruto `insta_post_1793733245487.mp4` tem 3min21. Ele virou `edicao_final.mp4`, com **2min17**, em 720×1280 (a resolução original), 30 fps, H.264 e áudio AAC em **-14 LUFS**, que é o padrão do Reels/TikTok/Shorts.
+O bruto `insta_post_1793733245487.mp4` tem 3min21. Ele virou `edicao_final.mp4`, com **2min15**, em 720×1280 (a resolução original), 30 fps, H.264 e áudio AAC em **-14 LUFS**, que é o padrão do Reels/TikTok/Shorts.
 
 ## A ideia da edição
 
 O conteúdo é um desabafo sério (carreira na internet → conversão → nova fase do perfil). Mas existe um personagem acidental no vídeo: **a touca de cetim**, que ele ajusta o tempo todo e comenta ("Meu Deus, o que é isso, cara?", "tô parecendo o Megamente", "minha cabeça não aguenta o tamanho dessa touca"). A edição usa isso como **piada recorrente** e preserva a mensagem séria.
 
-- O trecho em que ele luta com a touca (11 s) virou **"ACELERANDO 4x"**, com a voz em tom agudo e baixa, e termina em **"Pronto, deixa assim."** com um "tchan".
+- O trecho em que ele luta com a touca (11 s) fica **acelerado 4x**, com a voz em tom agudo e baixa, e termina em **"Pronto, deixa assim."** com um "tchan".
 
-## Legendas
+## Estilo (seguindo o vídeo de referência)
 
-- **Fonte:** Ronzino Bold, da Collletttivo, com licença SIL OFL (ver `fontes/OFL-Ronzino.txt`).
-- **Sem animação:** cada legenda é uma frase da fala, fixa na tela, e troca direto para a próxima quando ele passa para a frase seguinte.
-- **Formato:** até 2 linhas equilibradas, branca com contorno preto, na altura do peito (área segura do Reels).
-- **Destaque:** só as palavras-chave mudam de cor (amarelo, verde ou rosa), sem mudar de tamanho.
-- **Sem emojis e sem contador** na tela.
-- Nas falas sobre Deus, propósito e decisão, os efeitos ficam discretos: só destaque na legenda, zoom lento e um "ding".
+- **Legendas:** Ronzino Bold (Collletttivo, licença SIL OFL, ver `fontes/OFL-Ronzino.txt`), **toda branca**, pequena, com contorno fino. Mostra de 1 a 3 palavras por vez, **sem animação**: o trecho fica fixo e troca direto para o próximo trecho falado. Fica no meio-baixo da tela, dentro da área segura.
+- **"Várias câmeras":** em cada trecho, o plano alterna entre aberto e **close no rosto** nas trocas de frase (a cada ~1,5 s). O rosto é rastreado quadro a quadro, então o close acompanha o movimento.
+- **Câmera viva:** cada enquadramento vai se aproximando devagar, sem nunca ficar parado.
+- **Humor:** zooms rápidos nas reações, "boing", grilos na pausa, tremida, trecho acelerado com voz fininha e um "postar" em zoom crescente no final.
+- **Sem** títulos grandes, emojis, contador ou cartão final.
 
 ## Estrutura
 
 | Saída | O que acontece |
 |-------|----------------|
-| 0:00–0:03 | **Gancho:** "Eu já alcancei mais de 600 mil pessoas" + grafismo **+600 MIL** |
+| 0:00–0:03 | **Gancho:** "Eu já alcancei mais de 600 mil pessoas" |
 | 0:03 | Efeito de **rebobinar** (scratch) e volta para o começo |
 | 0:03–0:15 | "Uma curiosidade sobre mim…" → reação à touca com **zoom rápido**, "boing", zoom em "Megamente", pausa cômica com grilos |
-| 0:15–0:34 | 10 anos de internet (**10 ANOS**), conversão, +600 mil, vida com Deus |
+| 0:15–0:34 | 10 anos de internet, conversão, +600 mil, vida com Deus |
 | 0:35–0:46 | "Tô colocando errado essa touca de cetim" → zoom → **acelerado 4x** → "Pronto, deixa assim" |
 | 0:46–1:12 | "Só que tem um porém" (riser + tremida), vida artística, Canadá, os frutos, "por aqui" |
 | 1:12–1:35 | Usar o que tem para glorificar a Deus, câmera, a decisão |
 | 1:35–1:52 | +200 mil views, a treta, vergonha (tremida) |
 | 1:52–2:10 | "Minha cabeça já não aguenta mais o tamanho dessa touca" (zoom + boing), novo foco do perfil |
-| 2:10–2:17 | "postar, postar, postar…": **cada "postar" dá um zoom a mais**, scratch, cartão final congelado |
+| 2:10–2:17 | "postar, postar, postar…": **cada "postar" dá um zoom a mais**, scratch e fim |
 
 ## O que foi cortado (e por quê)
 
@@ -82,7 +81,7 @@ python3 scripts/editar.py BRUTO.mp4 palavras.json sons edicao_final.mp4
 ```
 
 - **Cortes, zooms e efeitos:** `plano.py` (todos os tempos são do vídeo bruto).
-- **Fonte, cores e tamanho da legenda:** `scripts/editar.py` (`FONT_BLACK`, `CORES`, `caption_sprite`).
-- **Palavras em destaque:** `DESTAQUES` em `plano.py`.
+- **Fonte, tamanho e posição da legenda:** `scripts/editar.py` (`FONT_BLACK`, `caption_sprite`, `CAPTION_Y`).
+- **Intensidade do close:** `REFRAME_CLOSE` em `scripts/editar.py`.
 
 Dependências: `ffmpeg`, Python com `numpy`, `scipy`, `pillow`, `opencv-python-headless<5` e `sherpa-onnx`.

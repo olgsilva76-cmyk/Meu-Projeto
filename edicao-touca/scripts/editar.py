@@ -105,12 +105,12 @@ for c in clips:
         txt = w["w"].replace("...", "…")
         os_ = c["o0"] + max(0, w["s"] - c["s"])
         oe_ = c["o0"] + min(c["e"], w["e"]) - c["s"]
-        cor, _ = plano.DESTAQUES.get(w["w"], ("w", False))
-        # legenda por frase: troca quando a frase acaba ou quando fica longa demais
+        cor = "w"  # tudo branco
+        # legenda curta (1–3 palavras): troca quando o trecho acaba ou fica longo
         if group:
             dur = oe_ - group[0][1]
             chars = sum(len(g[0]) + 1 for g in group) + len(txt)
-            if dur > 2.6 or chars > 34:
+            if dur > 1.25 or chars > 19 or len(group) >= 3:
                 # não termina a legenda em artigo/preposição solta ("o", "de", "a"...)
                 carry = []
                 while len(group) > 1 and len(group[-1][0]) <= 3 and group[-1][0][-1].isalpha():
@@ -119,7 +119,7 @@ for c in clips:
                 group.extend(carry)
         group.append((txt, os_, oe_, cor, False))
         chars = sum(len(g[0]) + 1 for g in group)
-        if txt[-1] in ".?!…" or (txt[-1] == "," and chars >= 14):
+        if txt[-1] in ".?!…," and len(txt) > 1:
             flush()
     flush()
 caps.sort(key=lambda g: g["words"][0][1])
@@ -178,14 +178,14 @@ def caption_sprite(gi, active):
     if key in _cap_cache:
         return _cap_cache[key]
     g = caps[gi]
-    size = 56
+    size = 44
     parts = []
     for k, (txt, _, _, cor, imp) in enumerate(g["words"]):
         f = font(FONT_BLACK, size)
         parts.append((txt, f, CORES[cor], size))  # cor fixa: branco, ou cor da palavra em destaque
-    space = 14
+    space = 11
     # quebra em até 2 linhas
-    widths = [p[1].getbbox(p[0], stroke_width=7)[2] for p in parts]
+    widths = [p[1].getbbox(p[0], stroke_width=4)[2] for p in parts]
     items = list(zip(parts, widths))
     total = sum(widths) + space * (len(items) - 1)
     if total <= 600 or len(items) < 2:
@@ -209,10 +209,10 @@ def caption_sprite(gi, active):
         lw = sum(wd for _, wd in ln) + space * (len(ln) - 1)
         x = 20 + (tw - lw) // 2
         for (txt, f, col, sz), wd in ln:
-            d.text((x, y + (h - sz) * 0.8), txt, font=f, fill=col, stroke_width=7, stroke_fill=(10, 10, 10))
+            d.text((x, y + (h - sz) * 0.8), txt, font=f, fill=col, stroke_width=4, stroke_fill=(15, 15, 15))
             x += wd + space
         y += int(h * 1.12)
-    spr = to_np(shadowed(img, 8, (0, 5), 170))
+    spr = to_np(shadowed(img, 6, (0, 3), 150))
     _cap_cache[key] = spr
     return spr
 
@@ -356,7 +356,40 @@ def zoom_at(c, t):
     # transição "whip": começa mais perto e assenta
     if c.get("enter") == "whip":
         mult *= 1 + 0.12 * (1 - ease_out(clamp((t - c["o0"]) / 0.22)))
+    # reenquadramento estilo "várias câmeras": alterna aberto/close nas trocas de frase
+    sw = [x for x in c.get("reframes", []) if x[0] <= t]
+    if sw:
+        t0, tight = sw[-1]
+    else:
+        t0, tight = c["o0"], False
+    if tight:
+        mult *= REFRAME_CLOSE
+    # câmera "viva": empurra devagar dentro de cada enquadramento
+    mult *= 1 + 0.045 * clamp((t - t0) / 2.5)
     return z * mult
+
+
+REFRAME_CLOSE = 1.34
+
+
+def build_reframes():
+    """Escolhe, em cada clipe, onde cortar para o close (sempre numa troca de legenda)."""
+    for c in clips:
+        if c.get("speed", 1) != 1 or c.get("tag") == "rewind":
+            continue
+        starts = [g["o0"] for g in caps if c["o0"] + 0.9 <= g["o0"] < c["o1"] - 0.6]
+        rf, last, tight = [], c["o0"], c.get("start_close", False)
+        if tight:
+            rf.append((c["o0"], True))
+        for s in starts:
+            if s - last >= 1.4:
+                tight = not tight
+                rf.append((s, tight))
+                last = s
+        c["reframes"] = rf
+
+
+build_reframes()
 
 
 def shake_at(t):
@@ -385,18 +418,31 @@ def read_frames(s, e):
     return arr[:n * W * H * 3].reshape(n, H, W, 3)
 
 
-def face_center(frames):
-    pts = []
-    for f in frames[:: max(1, len(frames) // 5)][:6]:
-        g = cv2.cvtColor(cv2.resize(f, (W // 2, H // 2)), cv2.COLOR_BGR2GRAY)
+def face_track(frames):
+    """Posição do rosto em cada quadro: detecta a cada 3 quadros, interpola e suaviza."""
+    n = len(frames)
+    ks, pts = [], []
+    for k in range(0, n, 3):
+        g = cv2.cvtColor(cv2.resize(frames[k], (W // 2, H // 2)), cv2.COLOR_BGR2GRAY)
         det = cascade.detectMultiScale(g, 1.1, 5, minSize=(40, 40))
         if len(det):
             x, y, w, h = max(det, key=lambda r: r[2] * r[3])
+            ks.append(k)
             pts.append(((x + w / 2) * 2, (y + h / 2) * 2, w * 2))
     if not pts:
-        return (W / 2, H * 0.36, 160)
-    a = np.median(np.array(pts), 0)
-    return tuple(a)
+        return np.tile([W / 2, H * 0.36, 160.0], (n, 1))
+    pts = np.array(pts)
+    # descarta detecções muito longe da mediana (falsos positivos)
+    med = np.median(pts, 0)
+    ok = np.abs(pts[:, 0] - med[0]) + np.abs(pts[:, 1] - med[1]) < 260
+    ks, pts = np.array(ks)[ok], pts[ok]
+    if not len(pts):
+        return np.tile(med, (n, 1))
+    tr = np.stack([np.interp(np.arange(n), ks, pts[:, i]) for i in range(3)], 1)
+    win = 15  # meio segundo de suavização: movimento de câmera, não tremedeira
+    pad = np.pad(tr, ((win, win), (0, 0)), mode="edge")
+    kern = np.ones(2 * win + 1) / (2 * win + 1)
+    return np.stack([np.convolve(pad[:, i], kern, mode="valid") for i in range(3)], 1)
 
 
 # cor: leve contraste/saturação/calor + vinheta
@@ -446,14 +492,14 @@ def overlays(frame, t, c, face_out):
             k_out = clamp((t - (o + dur - 0.2)) / 0.2)
             sc = (0.4 + 0.6 * ease_back(k_in)) * (1 - 0.3 * k_out)
             blit(frame, big_sprite(ef[2], ef[3]), W / 2, 250, sc, (1 - k_out) * clamp(k_in * 3))
-    # ---- rótulo do trecho acelerado ----
-    if c.get("tag") == "fast":
-        blit(frame, label_sprite("ACELERANDO 4x", (40, 40, 44)), W / 2, 980)
-    # ---- legendas: frase inteira, fixa, troca de uma frase para a outra ----
+    # ---- legendas: fixas, trocam de um trecho da fala para o outro ----
     for gi, g in enumerate(caps):
         if g["o0"] <= t < g["o1"]:
-            blit(frame, caption_sprite(gi, 0), W / 2, 905)
+            blit(frame, caption_sprite(gi, 0), W / 2, CAPTION_Y)
             break
+
+
+CAPTION_Y = 850
 
 
 def render_frame(fi, cache):
@@ -467,11 +513,12 @@ def render_frame(fi, cache):
             raw = raw[::sp]
         elif sp < 0:
             raw = raw[::sp]  # de trás pra frente, pulando quadros
-        cache[c["idx"]] = (raw, face_center(raw))
-    raw, center = cache[c["idx"]]
+        cache[c["idx"]] = (raw, face_track(raw))
+    raw, track = cache[c["idx"]]
     k = int(round((t - c["o0"]) * FPS))
     k = min(max(k, 0), len(raw) - 1)
     f = raw[k]
+    center = tuple(track[k])
     hold = t >= c["o1"]
     tt = min(t, c["o1"] - 1e-3)
     z = zoom_at(c, tt)
@@ -502,8 +549,6 @@ def render_frame(fi, cache):
         f = cv2.GaussianBlur(f, (0, 0), 0.1 + 6 * kk)
     overlays(f, t, c, face_out)
     if hold and c.get("tag") == "end":
-        kk = clamp((t - c["o1"] - 0.15) / 0.35)
-        blit(f, end_card_sprite(), W / 2, H * 0.45, 0.6 + 0.4 * ease_back(kk), clamp(kk * 2))
         fade = clamp((t - (TOTAL - 0.5)) / 0.5)
         f = (f.astype(np.float32) * (1 - fade)).astype(np.uint8)
     # flash branco de entrada
@@ -596,7 +641,7 @@ def render_audio(path):
         mus = np.concatenate([mus, mus[:n - len(mus)]])
     mus = mus[:n].copy()
     tt = np.arange(n) / SR
-    gain = np.full(n, db(-17), np.float32)
+    gain = np.full(n, db(-21), np.float32)
     for c in clips:
         if c.get("tag") == "fast":
             gain[(tt >= c["o0"]) & (tt < c["o1"])] = db(-9)
