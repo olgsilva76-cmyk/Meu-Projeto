@@ -1,0 +1,20 @@
+{
+  "projeto_openart": "Clipe Jason e Lúcia - VAMORLI (id 1pIv0e8vSWKOu9G51sDQ)",
+  "modelo": "Nano Banana 2 (OpenArt)",
+  "personagens": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743586514_2fb085dc_1793743587489_5f766217.png",
+  "cenas": {
+    "01": {"desc": "Abertura: drone sobre o mar, cidade neon no pôr do sol", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743637381_e9678a6e_1793743638041_96cf2ca7.png"},
+    "13": {"desc": "O primeiro olhar no bar neon", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743642004_f3c85399_1793743642217_b905d433.png"},
+    "15": {"desc": "Primeiro golpe: saindo da loja com máscaras", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743647823_6407bbba_1793743648129_7c0891b1.png"},
+    "16": {"desc": "Refrão: caminhando com a explosão atrás", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743648528_a8d5d382_1793743648585_36446139.png"},
+    "22": {"desc": "Pulo do píer para a lancha", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743653533_80bae705_1793743653613_c89fd2d0.png"},
+    "24": {"desc": "Flashback: saída da prisão", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743731393_3291bc77_1793743731568_69bd4f97.png"},
+    "30": {"desc": "Motel: testa com testa", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743658555_74409354_1793743659496_5522554f.png"},
+    "33": {"desc": "Respiro: isqueiro no escuro", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743661750_990c1c72_1793743662947_d6ba470d.png"},
+    "36": {"desc": "Helicóptero com holofote", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743664803_4ae31b72_1793743665614_46a4fb3a.png"},
+    "42": {"desc": "Ponte: os dois no telhado ao amanhecer", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743668463_89922f05_1793743668748_74e85c2f.png"},
+    "51": {"desc": "Lancha saltando a onda", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743735728_e33b0573_1793743735801_d8f66286.png"},
+    "54": {"desc": "Clímax: saindo da fumaça com fogos", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743674764_fd5e7485_1793743674906_050838a8.png"},
+    "62": {"desc": "Outro: no capô do carro ao nascer do sol", "url": "https://cdn.openart.ai/openart-ai/production/2026-11/create-image/NgdDEYJjYorAl1lKa2i9/image_1793743681925_34608ce1_1793743682324_a027ab17.png"}
+  }
+}
