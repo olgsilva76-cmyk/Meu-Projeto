@@ -35,7 +35,7 @@ def lum(img):
 
 cut_i = int(round(CUT * FPS))
 ref = np.array([f.reshape(-1, 3).mean(0) for f in frames[:cut_i]]).mean(0)  # BGR mean part 1
-target_y = np.mean([lum(f) for f in frames[:cut_i]]) + 6
+target_y = np.mean([lum(f) for f in frames[:cut_i]]) - 8
 
 def relight(img):
     f = img.astype(np.float32) / 255.0
@@ -51,7 +51,7 @@ def relight(img):
     f = np.power(f, gamma)
     # local contrast / shadow lift in L channel
     lab = cv2.cvtColor((f * 255).astype(np.uint8), cv2.COLOR_BGR2LAB)
-    clahe = cv2.createCLAHE(clipLimit=1.6, tileGridSize=(6, 6))
+    clahe = cv2.createCLAHE(clipLimit=1.2, tileGridSize=(6, 6))
     lab[..., 0] = clahe.apply(lab[..., 0])
     out = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
     out = cv2.fastNlMeansDenoisingColored(out, None, 3, 3, 5, 11)
@@ -186,6 +186,8 @@ for i in range(N):
     img = cv2.warpAffine(img, Mx, (W, H), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
     m = cv2.warpAffine(masks[i], Mx, (W, H), flags=cv2.INTER_LINEAR)[..., None]
     fx, fy, fw = (fx - x0) * z, (fy - y0) * z, fw * z
+
+    img = np.power(np.clip(img, 0, 1), 1.15)  # overall slightly darker / richer
 
     # second part: colourful light leaks on the background only
     if t >= CUT:
