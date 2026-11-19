@@ -39,7 +39,7 @@ def lum(img):
 
 cut_i = int(math.ceil(CUT_SRC * FPS))
 ref = np.array([f.reshape(-1, 3).mean(0) for f in frames[:cut_i]]).mean(0)  # BGR mean part 1
-target_y = np.mean([lum(f) for f in frames[:cut_i]]) - 2
+target_y = np.mean([lum(f) for f in frames[:cut_i]]) - 14
 
 def relight(img):
     f = img.astype(np.float32) / 255.0
@@ -201,6 +201,10 @@ def leaks(t, strength):
     img = cv2.resize(img, (W, H)) / 255.0
     return img * strength
 
+_yy, _xx = np.mgrid[0:H, 0:W].astype(np.float32)
+_r = np.sqrt(((_xx - W / 2) / (W / 2)) ** 2 + ((_yy - H * 0.45) / (H / 2)) ** 2)
+VIG = (1 - 0.22 * np.clip(_r - 0.35, 0, 1) ** 1.5)[..., None].astype(np.float32)
+
 # ---------- render ----------
 ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24",
                        "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-i", SRC,
@@ -225,10 +229,11 @@ for i in range(N):
 
     # second part: colourful light leaks on the background only
     if t >= CUT:
-        s = 0.18 + 0.4 * ease((t - 6.6) / 0.8)
+        s = 0.10 + 0.22 * ease((t - 6.6) / 0.8)
         bg = cv2.GaussianBlur(img, (0, 0), 12 * ease((t - 6.6) / 0.8) + 0.01)
         bg = 1 - (1 - bg) * (1 - leaks(t, s))
         img = bg * (1 - m) + img * m
+        img = img * VIG  # soft vignette keeps the end from looking washed out
 
     # ---- OUT: over the body but behind the face ----
     if 5.9 <= t < 6.7:
