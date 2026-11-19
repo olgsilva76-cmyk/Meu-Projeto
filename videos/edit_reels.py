@@ -10,7 +10,7 @@ OFFSET = float(sys.argv[4]) if len(sys.argv) > 4 else 0.0     # source time 0 = 
 CUT_SRC = float(sys.argv[5]) if len(sys.argv) > 5 else 5.68   # look change, in source time
 W, H, FPS = 1080, 1920, 30
 CUT = CUT_SRC + OFFSET
-ANTON = f"{S}/fonts/Anton-Regular.ttf"
+ANTON = f"{S}/bebas/BebasNeue_Complete/Fonts/OTF/BebasNeue-Regular.otf"  # Bebas Neue
 MARK = f"{S}/fonts/PermanentMarker-Regular.ttf"
 
 # ---------- read frames ----------
@@ -118,6 +118,13 @@ F = np.array(faces, dtype=np.float32)
 k = 9
 F = np.stack([np.convolve(np.pad(F[:, j], k // 2, mode="edge"), np.ones(k) / k, "valid") for j in range(3)], 1)
 
+# static anchor per caption: median face position over the word's time window
+def anchor(t0, t1):
+    idx = [i for i in range(N) if t0 <= i / FPS + OFFSET < t1] or [0]
+    return np.median(F[idx], axis=0)
+ANCH = {"UPSIDE": anchor(0, 1.15), "DOWN": anchor(1.2, 2.05), "BOY": anchor(2.8, 3.4),
+        "YTM": anchor(3.4, 4.3), "INSIDE": anchor(4.7, CUT), "OUT": anchor(5.9, 6.7), "AND": anchor(6.8, 7.2)}
+
 # ---------- helpers ----------
 def ease(x): x = min(max(x, 0), 1); return x * x * (3 - 2 * x)
 def eout(x): x = min(max(x, 0), 1); return 1 - (1 - x) ** 3
@@ -207,30 +214,19 @@ for i in range(N):
     fx, fy, fw = F[i]
     img = proc[i].astype(np.float32) / 255.0
 
-    # ---- camera: follow the face and punch in on key words (before text) ----
-    z = 1.06
-    z += 0.16 * ease((t - 2.75) / 0.45) * (1 - ease((t - 3.35) / 0.3))
-    z += 0.14 * (1 - ease((t - CUT) / 0.5)) * (t >= CUT)
-    z += 0.05 * ease((t - 7.4) / 1.6)
-    cw, ch = W / z, H / z
-    cx = min(max(fx, cw / 2), W - cw / 2)
-    cy = min(max(fy + ch * 0.08, ch / 2), H - ch / 2)
-    x0, y0 = cx - cw / 2, cy - ch / 2
-    Mx = np.float32([[z, 0, -x0 * z], [0, z, -y0 * z]])
-    img = cv2.warpAffine(proc[i], Mx, (W, H), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REFLECT)
+    # ---- camera: locked off, like the reference (no follow / no zoom = no shake) ----
+    img = proc[i]
     img = (sharpen(img, 1.0, 0.65) if t < CUT else sharpen(img, 0.2, 0.6)).astype(np.float32) / 255.0
-    # fine luma grain hides banding from the brightened low-light part
     grain = np.random.normal(0, 0.014 if t >= CUT else 0.007, (H, W, 1)).astype(np.float32)
     img = img + grain
-    m = cv2.warpAffine(masks[i].astype(np.float32), Mx, (W, H), flags=cv2.INTER_LINEAR)[..., None]
-    fx, fy, fw = (fx - x0) * z, (fy - y0) * z, fw * z
+    m = masks[i].astype(np.float32)[..., None]
 
     img = np.power(np.clip(img, 0, 1), 1.06)  # overall slightly darker / richer
 
     # second part: colourful light leaks on the background only
     if t >= CUT:
-        s = 0.18 + 0.25 * ease((t - 6.6) / 0.8)
-        bg = cv2.GaussianBlur(img, (0, 0), 6 * ease((t - 6.6) / 0.8) + 0.01)
+        s = 0.18 + 0.4 * ease((t - 6.6) / 0.8)
+        bg = cv2.GaussianBlur(img, (0, 0), 12 * ease((t - 6.6) / 0.8) + 0.01)
         bg = 1 - (1 - bg) * (1 - leaks(t, s))
         img = bg * (1 - m) + img * m
 
@@ -238,7 +234,8 @@ for i in range(N):
     if 5.9 <= t < 6.7:
         p = eout((t - 5.9) / 0.15)
         a = 1 - ease((t - 6.55) / 0.15)
-        lay = text_layer("OUT", ANTON, 560, (247, 228, 60, 255), W / 2, fy + fw * 0.55,
+        ax, ay, aw = ANCH["OUT"]
+        lay = text_layer("OUT", ANTON, 680, (247, 228, 60, 255), W / 2, ay + aw * 0.55,
                          sx=1.3 * (0.8 + 0.2 * p), sy=0.8 + 0.2 * p, alpha=a, shadow=False, rough=0.45, clamp=False)
         face = np.zeros((H, W), np.float32)
         cv2.ellipse(face, (int(fx), int(fy - fw * 0.05)), (int(fw * 0.45), int(fw * 0.62)), 0, 0, 360, 1, -1)
@@ -252,32 +249,38 @@ for i in range(N):
     side_l = fx - fw * 0.75
     side_r = fx + fw * 0.75
     if 0.0 <= t < 1.15:  # UPSIDE (flips in)
+        fx, fy, fw = ANCH["UPSIDE"]; side_l = fx - fw * 0.75; side_r = fx + fw * 0.75
         p = eout(t / 0.2)
-        front.append(text_layer("UPSIDE", ANTON, 130, (255, 255, 255, 255), max(190, side_l - 120), fy,
+        front.append(text_layer("UPSIDE", ANTON, 190, (255, 255, 255, 255), max(190, side_l - 120), fy,
                                 sy=-1 + 2 * p if p < 1 else 1, alpha=min(1, p * 2)))
     if 1.2 <= t < 2.05:  # DOWN (arrives upside down, rights itself)
+        fx, fy, fw = ANCH["DOWN"]; side_l = fx - fw * 0.75; side_r = fx + fw * 0.75
         p = eout((t - 1.2) / 0.25)
-        front.append(text_layer("DOWN", ANTON, 140, (255, 255, 255, 255), min(W - 170, side_r + 110), fy + fw * 0.15,
-                                rot=180 * (1 - p)))
+        front.append(text_layer("DOWN", ANTON, 200, (255, 255, 255, 255), min(W - 170, side_r + 110), fy + fw * 0.15,
+                                sy=-1 + 2 * p if p < 1 else 1))
     if 2.8 <= t < 3.4:  # BOY grows to fill the frame
+        fx, fy, fw = ANCH["BOY"]; side_l = fx - fw * 0.75; side_r = fx + fw * 0.75
         p = min((t - 2.8) / 0.42, 1)
         sc = 0.35 + 2.3 * p ** 3
         a = 1 - ease((t - 3.27) / 0.12)
-        front.append(text_layer("BOY", ANTON, 330, (255, 255, 255, 255), W / 2, fy + fw * 0.1,
+        front.append(text_layer("BOY", ANTON, 400, (255, 255, 255, 255), W / 2, fy + fw * 0.1,
                                 sx=sc, sy=sc, alpha=a, shadow=sc < 1.2, rough=0.35 if sc > 1 else 0, clamp=False))
     if 3.4 <= t < 4.3:  # YOU TURN ME fades in under the chin
+        fx, fy, fw = ANCH["YTM"]; side_l = fx - fw * 0.75; side_r = fx + fw * 0.75
         a = ease((t - 3.4) / 0.25) * (1 - ease((t - 4.15) / 0.15))
-        front.append(text_layer("YOU TURN ME", ANTON, 120, (255, 255, 255, 255), W / 2, fy + fw * 1.05,
+        front.append(text_layer("YOU TURN ME", ANTON, 170, (255, 255, 255, 255), W / 2, fy + fw * 1.05,
                                 alpha=a))
     if 4.7 <= t < CUT:  # INSIDE typed, then shrinks away
+        fx, fy, fw = ANCH["INSIDE"]; side_l = fx - fw * 0.75; side_r = fx + fw * 0.75
         word = "INSIDE"
         n = min(len(word), 3 + int((t - 4.7) / 0.05)) if t < 4.8 else len(word)
         sh = 1 - ease((t - 5.45) / 0.2) * 0.9
-        front.append(text_layer(word[:n], ANTON, 140, (255, 255, 255, 255), max(200, side_l - 110), fy,
+        front.append(text_layer(word[:n], ANTON, 200, (255, 255, 255, 255), max(200, side_l - 110), fy,
                                 sx=sh, sy=sh))
     if 6.8 <= t < 7.2:  # AND
+        fx, fy, fw = ANCH["AND"]; side_l = fx - fw * 0.75; side_r = fx + fw * 0.75
         p = eout((t - 6.8) / 0.12)
-        front.append(text_layer("AND", ANTON, 130, (255, 255, 255, 255), min(W - 150, side_r + 90), fy,
+        front.append(text_layer("AND", ANTON, 185, (255, 255, 255, 255), min(W - 150, side_r + 90), fy,
                                 sx=0.6 + 0.4 * p, sy=0.6 + 0.4 * p))
     if t >= 7.6:  # ROUND & ROUND hand-written along an arc
         txt = "ROUND & ROUND"
