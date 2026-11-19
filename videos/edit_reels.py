@@ -51,18 +51,32 @@ def relight(img):
     f = np.power(f, gamma)
     # local contrast / shadow lift in L channel
     lab = cv2.cvtColor((f * 255).astype(np.uint8), cv2.COLOR_BGR2LAB)
-    clahe = cv2.createCLAHE(clipLimit=1.2, tileGridSize=(6, 6))
+    clahe = cv2.createCLAHE(clipLimit=0.8, tileGridSize=(6, 6))
     lab[..., 0] = clahe.apply(lab[..., 0])
     out = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
-    out = cv2.fastNlMeansDenoisingColored(out, None, 3, 3, 5, 11)
+    out = cv2.fastNlMeansDenoisingColored(out, None, 2, 2, 5, 11)
     return out
+
+sr = cv2.dnn_superres.DnnSuperResImpl_create()
+sr.readModel(f"{S}/models/FSRCNN_x2.pb"); sr.setModel("fsrcnn", 2)
+
+def sharpen(img, k_base=0.9, k_fine=0.5):
+    # edge-aware detail boost on luminance only (no colour halos)
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB).astype(np.float32)
+    L = lab[..., 0]
+    base = cv2.bilateralFilter(L, 9, 20, 5)
+    fine = L - cv2.GaussianBlur(L, (0, 0), 1.0)
+    lab[..., 0] = np.clip(L + k_base * (L - base) + k_fine * fine, 0, 255)
+    return cv2.cvtColor(lab.astype(np.uint8), cv2.COLOR_LAB2BGR)
 
 # ---------- per-frame analysis ----------
 proc, masks, faces = [], [], []
 for i, f in enumerate(frames):
     g = relight(f) if i >= cut_i else f
+    if i < cut_i:
+        g = cv2.fastNlMeansDenoisingColored(g, None, 2, 2, 5, 11)  # clean compression noise before upscaling
+    g = sr.upsample(g)                                            # AI upscale x2
     g = cv2.resize(g, (W, H), interpolation=cv2.INTER_LANCZOS4)
-    g = cv2.filter2D(g, -1, np.array([[0, -.25, 0], [-.25, 2, -.25], [0, -.25, 0]]))  # mild sharpen after upscale
     proc.append(g)
     rgb = cv2.cvtColor(g, cv2.COLOR_BGR2RGB)
     im = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
@@ -164,8 +178,9 @@ def leaks(t, strength):
 # ---------- render ----------
 ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24",
                        "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-i", SRC,
-                       "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "slow", "-crf", "17",
-                       "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-shortest",
+                       "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "slower", "-crf", "14",
+                       "-profile:v", "high", "-tune", "film", "-x264-params", "aq-mode=3",
+                       "-pix_fmt", "yuv420p", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-c:a", "aac", "-b:a", "320k", "-shortest",
                        "-movflags", "+faststart", OUT], stdin=subprocess.PIPE)
 
 for i in range(N):
@@ -183,7 +198,11 @@ for i in range(N):
     cy = min(max(fy + ch * 0.08, ch / 2), H - ch / 2)
     x0, y0 = cx - cw / 2, cy - ch / 2
     Mx = np.float32([[z, 0, -x0 * z], [0, z, -y0 * z]])
-    img = cv2.warpAffine(img, Mx, (W, H), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
+    img = cv2.warpAffine(proc[i], Mx, (W, H), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REFLECT)
+    img = (sharpen(img) if t < CUT else sharpen(img, 0.25, 0.45)).astype(np.float32) / 255.0
+    # fine luma grain hides banding from the brightened low-light part
+    grain = np.random.normal(0, 0.012 if t >= CUT else 0.006, (H, W, 1)).astype(np.float32)
+    img = img + grain
     m = cv2.warpAffine(masks[i], Mx, (W, H), flags=cv2.INTER_LINEAR)[..., None]
     fx, fy, fw = (fx - x0) * z, (fy - y0) * z, fw * z
 
