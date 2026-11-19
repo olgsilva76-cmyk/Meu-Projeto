@@ -6,8 +6,10 @@ from mediapipe.tasks import python as mpt
 from mediapipe.tasks.python import vision
 
 SRC, OUT, S = sys.argv[1], sys.argv[2], sys.argv[3]
+OFFSET = float(sys.argv[4]) if len(sys.argv) > 4 else 0.0     # source time 0 = song time OFFSET
+CUT_SRC = float(sys.argv[5]) if len(sys.argv) > 5 else 5.68   # look change, in source time
 W, H, FPS = 1080, 1920, 30
-CUT = 5.68
+CUT = CUT_SRC + OFFSET
 ANTON = f"{S}/fonts/Anton-Regular.ttf"
 MARK = f"{S}/fonts/PermanentMarker-Regular.ttf"
 
@@ -17,6 +19,8 @@ frames = []
 while True:
     ok, f = cap.read()
     if not ok: break
+    if f.shape[1] > 700:
+        f = cv2.resize(f, (f.shape[1] // 2, f.shape[0] // 2), interpolation=cv2.INTER_AREA)
     frames.append(f)
 N = len(frames)
 print("frames", N)
@@ -33,9 +37,9 @@ fd = vision.FaceDetector.create_from_options(vision.FaceDetectorOptions(
 def lum(img):
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).mean()
 
-cut_i = int(round(CUT * FPS))
+cut_i = int(math.ceil(CUT_SRC * FPS))
 ref = np.array([f.reshape(-1, 3).mean(0) for f in frames[:cut_i]]).mean(0)  # BGR mean part 1
-target_y = np.mean([lum(f) for f in frames[:cut_i]]) - 8
+target_y = np.mean([lum(f) for f in frames[:cut_i]]) - 2
 
 def relight(img):
     f = img.astype(np.float32) / 255.0
@@ -51,14 +55,28 @@ def relight(img):
     f = np.power(f, gamma)
     # local contrast / shadow lift in L channel
     lab = cv2.cvtColor((f * 255).astype(np.uint8), cv2.COLOR_BGR2LAB)
-    clahe = cv2.createCLAHE(clipLimit=0.8, tileGridSize=(6, 6))
+    clahe = cv2.createCLAHE(clipLimit=0.5, tileGridSize=(6, 6))
     lab[..., 0] = clahe.apply(lab[..., 0])
     out = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
-    out = cv2.fastNlMeansDenoisingColored(out, None, 2, 2, 5, 11)
+    out = cv2.fastNlMeansDenoisingColored(out, None, 1, 1, 5, 11)
     return out
 
 sr = cv2.dnn_superres.DnnSuperResImpl_create()
 sr.readModel(f"{S}/models/FSRCNN_x2.pb"); sr.setModel("fsrcnn", 2)
+
+# gentle "pro" grade: soft S-curve contrast + a touch of vibrance, warm skin
+_x = np.arange(256) / 255.0
+_curve = np.clip(255 * (_x - 0.04 * np.sin(2 * np.pi * _x)), 0, 255).astype(np.uint8)
+def grade(img):
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    lab[..., 0] = cv2.LUT(lab[..., 0], _curve)
+    out = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+    hsv = cv2.cvtColor(out, cv2.COLOR_BGR2HSV).astype(np.float32)
+    sat = hsv[..., 1]
+    hsv[..., 1] = np.clip(sat + 0.12 * (255 - sat) * (sat / 255.0) * 1.5, 0, 255)  # vibrance
+    out = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR).astype(np.float32)
+    out[..., 2] *= 1.015; out[..., 0] *= 0.985                                     # slight warmth
+    return np.clip(out, 0, 255).astype(np.uint8)
 
 def sharpen(img, k_base=0.9, k_fine=0.5):
     # edge-aware detail boost on luminance only (no colour halos)
@@ -77,12 +95,13 @@ for i, f in enumerate(frames):
         g = cv2.fastNlMeansDenoisingColored(g, None, 2, 2, 5, 11)  # clean compression noise before upscaling
     g = sr.upsample(g)                                            # AI upscale x2
     g = cv2.resize(g, (W, H), interpolation=cv2.INTER_LANCZOS4)
+    g = grade(g)
     proc.append(g)
     rgb = cv2.cvtColor(g, cv2.COLOR_BGR2RGB)
     im = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
     cm = seg.segment(im).confidence_masks
     person = 1.0 - cm[0].numpy_view()  # 1 - background
-    masks.append(cv2.GaussianBlur(person.astype(np.float32), (9, 9), 0))
+    masks.append(cv2.GaussianBlur(person.astype(np.float32), (9, 9), 0).astype(np.float16))
     det = fd.detect(im).detections
     if det:
         b = max(det, key=lambda d: d.bounding_box.width).bounding_box
@@ -184,7 +203,7 @@ ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fm
                        "-movflags", "+faststart", OUT], stdin=subprocess.PIPE)
 
 for i in range(N):
-    t = i / FPS
+    t = i / FPS + OFFSET
     fx, fy, fw = F[i]
     img = proc[i].astype(np.float32) / 255.0
 
@@ -199,14 +218,14 @@ for i in range(N):
     x0, y0 = cx - cw / 2, cy - ch / 2
     Mx = np.float32([[z, 0, -x0 * z], [0, z, -y0 * z]])
     img = cv2.warpAffine(proc[i], Mx, (W, H), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REFLECT)
-    img = (sharpen(img) if t < CUT else sharpen(img, 0.25, 0.45)).astype(np.float32) / 255.0
+    img = (sharpen(img, 1.0, 0.65) if t < CUT else sharpen(img, 0.2, 0.6)).astype(np.float32) / 255.0
     # fine luma grain hides banding from the brightened low-light part
-    grain = np.random.normal(0, 0.012 if t >= CUT else 0.006, (H, W, 1)).astype(np.float32)
+    grain = np.random.normal(0, 0.014 if t >= CUT else 0.007, (H, W, 1)).astype(np.float32)
     img = img + grain
-    m = cv2.warpAffine(masks[i], Mx, (W, H), flags=cv2.INTER_LINEAR)[..., None]
+    m = cv2.warpAffine(masks[i].astype(np.float32), Mx, (W, H), flags=cv2.INTER_LINEAR)[..., None]
     fx, fy, fw = (fx - x0) * z, (fy - y0) * z, fw * z
 
-    img = np.power(np.clip(img, 0, 1), 1.15)  # overall slightly darker / richer
+    img = np.power(np.clip(img, 0, 1), 1.06)  # overall slightly darker / richer
 
     # second part: colourful light leaks on the background only
     if t >= CUT:
@@ -250,7 +269,7 @@ for i in range(N):
         a = ease((t - 3.4) / 0.25) * (1 - ease((t - 4.15) / 0.15))
         front.append(text_layer("YOU TURN ME", ANTON, 120, (255, 255, 255, 255), W / 2, fy + fw * 1.05,
                                 alpha=a))
-    if 4.7 <= t < 5.68:  # INSIDE typed, then shrinks away
+    if 4.7 <= t < CUT:  # INSIDE typed, then shrinks away
         word = "INSIDE"
         n = min(len(word), 3 + int((t - 4.7) / 0.05)) if t < 4.8 else len(word)
         sh = 1 - ease((t - 5.45) / 0.2) * 0.9
