@@ -280,11 +280,48 @@ class Title:
         L.rect(W / 2 - tot / 2 - 30 - rw, ys + 10, W / 2 - tot / 2 - 30, ys + 11.5, (225, 205, 170), 0.7 * fade)
         L.rect(W / 2 + tot / 2 + 30, ys + 10, W / 2 + tot / 2 + 30 + rw, ys + 11.5, (225, 205, 170), 0.7 * fade)
 
+class Lyric:
+    """song lyric block: each word blooms in (blur->sharp, rise) exactly when it is sung"""
+    def __init__(self, t_in, t_out, lines, yc=1360, size=76):
+        self.t_in, self.t_out, self.yc = t_in, t_out, yc
+        fv = font(F_VERSE, size); sp = fv.getlength(' '); lh = size * 1.2
+        self.lines = []; k = 0
+        for li, line in enumerate(lines):
+            words = []
+            for w, ts in line:
+                gold = w.startswith('*'); w = w.strip('*')
+                words.append(dict(sp=sprite(w, fv, GOLD if gold else WHITE), w=fv.getlength(w), ts=max(ts - 0.10, t_in), k=k)); k += 1
+            tot = sum(x['w'] for x in words) + sp * (len(words) - 1); x = (W - tot) / 2
+            for wd in words: wd['x'] = x; x += wd['w'] + sp
+            self.lines.append(dict(words=words, y=yc - (len(lines) - 1) * lh / 2 + li * lh - size * 0.55))
+    def vis(self, t): return env(t, self.t_in, self.t_out, 0.5, 0.5)
+    def draw(self, L, t):
+        if t < self.t_in - 0.1 or t > self.t_out + 0.1: return
+        for ln in self.lines:
+            for wd in ln['words']:
+                p = out_cubic((t - wd['ts']) / 0.45)
+                q = in_cubic((t - (self.t_out - 0.45 + 0.025 * wd['k'])) / 0.4)
+                op = p * (1 - q); blur = (1 - p) * 8 + q * 6; dy = (1 - p) * 22 - q * 14
+                L.blit(wd['sp'], wd['x'], ln['y'] + dy, op, blur)
+
+# Lyrics of the 03:05–04:07 section, word times from Whisper large-v3 transcription of the track (clip seconds)
 TEXTS = [
-    Verse(0.90, 5.95, ['É necessário que *Ele* cresça', 'e que eu diminua.'], 'JOÃO 3:30', 1330),
-    Verse(22.05, 27.40, ['…assim andemos nós também', 'em *novidade* *de* *vida.*'], 'ROMANOS 6:4', 1340, 68),
-    Verse(31.62, 36.90, ['Se alguém está em Cristo,', '*nova* *criatura* é.'], '2 CORÍNTIOS 5:17', 1340),
-    Title(56.10, 61.95, 'NUNCA FOI', 'SOBRE NÓS', 'MINISTÉRIO ZOE', 1250),
+    Lyric(1.25, 6.45, [[('Sem', 1.68), ('Ti,', 2.04), ('sem', 3.04), ('Ti', 4.04)],
+                       [('eu', 4.36), ('nada', 4.64), ('posso', 4.92), ('fazer', 5.36)]]),
+    Lyric(6.60, 12.75, [[('É', 6.84), ('tudo', 7.88), ('sobre', 8.26), ('você,', 9.04)],
+                        [('tudo', 9.88), ('pra', 10.48), ('você,', 10.86), ('*Jesus*', 11.96)]]),
+    Lyric(13.90, 18.85, [[('Você', 14.80), ('é', 15.78), ('santo,', 16.16)], [('santo,', 17.14), ('santo', 18.06)]]),
+    Lyric(18.90, 22.60, [[('Santo,', 19.00), ('santo,', 20.48), ('santo', 21.96)]]),
+    Lyric(22.65, 28.30, [[('É', 22.80), ('tudo', 23.38), ('sobre', 23.78), ('você,', 24.54)],
+                         [('tudo', 25.36), ('pra', 25.88), ('você,', 26.32), ('*Jesus*', 27.08)]]),
+    Lyric(29.40, 34.30, [[('Você', 29.90), ('é', 30.95), ('santo,', 31.62)], [('santo,', 32.62), ('santo', 33.56)]]),
+    Lyric(34.35, 38.10, [[('Santo,', 34.44), ('santo,', 36.16), ('santo', 37.38)]]),
+    Lyric(38.15, 44.00, [[('É', 38.22), ('tudo', 38.90), ('sobre', 39.20), ('você,', 40.02)],
+                         [('tudo', 40.80), ('pra', 41.38), ('você,', 41.82), ('*Jesus*', 42.76)]]),
+    Lyric(44.90, 49.85, [[('Você', 45.58), ('é', 46.74), ('santo,', 47.08)], [('santo,', 48.10), ('santo', 49.06)]]),
+    Lyric(49.90, 53.60, [[('Santo,', 49.94), ('santo,', 51.44), ('santo', 52.90)]]),
+    Lyric(53.65, 61.70, [[('É', 53.74), ('tudo', 54.40), ('sobre', 54.84), ('você,', 55.56)],
+                         [('tudo', 56.34), ('pra', 56.88), ('você,', 57.34), ('*Jesus*', 58.32)]]),
 ]
 ROWS = np.arange(H, dtype=np.float32)[:, None, None]
 
@@ -315,7 +352,7 @@ def frame(n):
     # legibility band behind text
     for tx in TEXTS:
         v = tx.vis(t)
-        if v > 0: f *= 1 - 0.42 * v * np.exp(-((ROWS - tx.yc) / 260) ** 2)
+        if v > 0: f *= 1 - 0.34 * v * np.exp(-((ROWS - tx.yc) / 260) ** 2)
     # global fades (image)
     if t < 1.6: f *= out_cubic(t / 1.6) ** 1.2
     if t > 60.1: f *= 1 - smooth((t - 60.1) / 1.35)
