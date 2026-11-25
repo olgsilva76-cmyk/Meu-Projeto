@@ -371,7 +371,7 @@ def frame(n):
 if __name__ == '__main__':
     a, b, out = int(sys.argv[1]), int(sys.argv[2]), sys.argv[3]
     p = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', f'{W}x{H}', '-r', str(FPS),
-                          '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '15', '-pix_fmt', 'yuv420p',
+                          '-i', '-', '-c:v', 'libx264', '-preset', 'ultrafast', '-qp', '0', '-pix_fmt', 'yuv444p',
                           '-x264-params', 'keyint=60', out], stdin=subprocess.PIPE)
     for n in range(a, b):
         p.stdin.write(frame(n).tobytes())
